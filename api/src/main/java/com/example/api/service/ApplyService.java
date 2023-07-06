@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.producer.CouponCreateProducer;
+import com.example.api.repository.AppliedUserRepository;
 import com.example.api.repository.CouponCountRepository;
 import com.example.api.repository.CouponRepository;
 import org.springframework.stereotype.Service;
@@ -14,13 +15,26 @@ public class ApplyService {
 
     private final CouponCreateProducer couponCreateProducer;
 
-    public ApplyService(CouponRepository couponRepository, CouponCountRepository couponCountRepository, CouponCreateProducer couponCreateProducer) {
+    private final AppliedUserRepository appliedUserRepository;
+
+    public ApplyService(CouponRepository couponRepository, CouponCountRepository couponCountRepository, CouponCreateProducer couponCreateProducer, AppliedUserRepository appliedUserRepository) {
         this.couponRepository = couponRepository;
         this.couponCountRepository = couponCountRepository;
         this.couponCreateProducer = couponCreateProducer;
+        this.appliedUserRepository = appliedUserRepository;
     }
 
     public void apply(Long userId) {
+        /**
+         * 요구사항 변경
+         * 1인당 1개의 쿠폰만 생성가능
+         * **/
+        Long apply = appliedUserRepository.add(userId);
+
+        if (apply != 1) {
+            return;
+        }
+
         // 멀티스레드에서 문제 발생
 //        long count = couponRepository.count();
 

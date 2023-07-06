@@ -55,4 +55,31 @@ class ApplyServiceTest {
 
         assertThat(count).isEqualTo(100);
     }
+
+    @Test
+    public void 한명당_한개의_쿠폰만_발급() throws InterruptedException {
+        int threadCount = 1000; // 1000개의 요청
+        ExecutorService executorService = Executors.newFixedThreadPool(32); // 병렬작업을 간단하게 도와주는 자바의 API
+        CountDownLatch latch = new CountDownLatch(threadCount); // 다른 스레드에서 수행하는 작업을 기다리게 도와주는 클래스
+
+        for (int i = 0; i < threadCount; i++) {
+            long userId = i;
+            executorService.submit(() -> {
+                try {
+                    applyService.apply(1L);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+
+        // Consumer가 데이터를 처리하는데 시간이 있음
+        Thread.sleep(5000);
+
+        long count = couponRepository.count();
+
+        assertThat(count).isEqualTo(1);
+    }
 }
